@@ -1,14 +1,14 @@
 # TortoiseTax
 
-> Tax return preparation software by the people and for the people
+> Tax prep by the people and for the people
 
 ### What is this?
 
 This is a work-in-progress open source project intended to provide a foundation for
 free (both libre and gratis) tax return preparation. This foundation will be be
-agnostic to the specific tax code or jurisdiction; particular tax codes (IE US
-Federal, US states, or those of taxing authorities in other nations) will be specified
-separately, sharing the common foundation. From each tax code specification
+agnostic to the tax code or jurisdiction; particular tax codes (IE US Federal,
+US states, or those of taxing authorities in other nations) will be specified
+separately, sharing a common language. From each tax code specification
 user-facing surfaces will be derived, such as an interview program and the
 capability to fill tax forms, among others.
 
@@ -33,11 +33,11 @@ and perhaps to perform other analyses.
 #### A language to express tax codes
 
 A key challenge for developing tax return preparation software is that tax codes
-are complicated, there are many of them (1 for the federal govt and 50 for states
-just in the US), and they change frequently. As a result, for a project like this
-to succeed it is crucial that writing, reading, and revising tax code specifications
-be as easy as possible, and as broadly accessible as possible to people with tax
-expertise.
+are complicated, there are many of them (just in the US there is one for the
+federal government and are 50 for the state governments), and they change
+frequently. As a result, for a project like this to succeed it is crucial that
+writing, reading, and revising tax code specifications be as easy as possible,
+and as broadly accessible as possible to people with tax expertise.
 
 This project aims to satisfy that requirement by separating the specification of
 tax codes entirely from other concerns (namely the implementation of the interview
@@ -59,7 +59,7 @@ tax situation under the tax code. The implementation will make use of the
 hierarchical structure of the expression, natural language names and explanations
 associated with values, etc., to generate the interview program.
 
-If we consider the language described above as coding for an interview program,
+If we consider the language described above as coding for interview programs,
 the function described here is its compiler.
 
 A key advantage is that this function can be implemented once and reused for
