@@ -35,8 +35,8 @@ data Metadata = Metadata
     }
     deriving (Show)
 
-lit :: Metadata -> Question -> TaxCode a
-lit m q = Lit m q Proxy
+q :: Metadata -> Question -> TaxCode a
+q metadata question = Lit metadata question Proxy
 
 eval :: ( Applicative f, Num a ) => TaxExpr f a -> f a
 eval (Lit      _ _ fa) = fa
