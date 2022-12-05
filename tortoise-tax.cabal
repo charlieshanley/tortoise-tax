@@ -33,7 +33,7 @@ library
     default-language: Haskell2010
     ghc-options:      -Wall -Werror
     -- other-extensions:
-    exposed-modules:  TortoiseTax, Example
+    exposed-modules:  TortoiseTax, TaxCode.Example, Interview.CLI
     -- other-modules:
     build-depends:      base ^>=4.14.1.0
                       , text

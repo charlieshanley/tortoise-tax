@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Example where
+module TaxCode.Example where
 
 import TortoiseTax
 
