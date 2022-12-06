@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE GADTs #-}
 
 module TortoiseTax
@@ -21,6 +22,7 @@ data TaxExpr a where
     Add      :: Metadata -> TaxExpr a -> TaxExpr a -> TaxExpr a
     Subtract :: Metadata -> TaxExpr a -> TaxExpr a -> TaxExpr a
     -- Fun      :: Metadata -> (a -> b) -> TaxExpr a -> TaxExpr b
+    deriving (Functor)
 
 newtype Question = Q { getQuestion :: Text }
     deriving (Show)
@@ -39,6 +41,6 @@ q metadata question = Lit metadata question Proxy
 
 eval :: ( Applicative f, Num a ) => TaxExpr (f a) -> f a
 eval (Lit      _ _ fa) = fa
-eval (Add      _ a b)  = (+) <$> eval a <*> eval b
-eval (Subtract _ a b)  = (-) <$> eval a <*> eval b
+eval (Add      _ x y)  = (+) <$> eval x <*> eval y
+eval (Subtract _ x y)  = (-) <$> eval x <*> eval y
 -- eval (Fun      _ f fb) = f   <$> fb
