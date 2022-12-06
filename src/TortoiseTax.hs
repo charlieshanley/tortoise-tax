@@ -12,16 +12,15 @@ import Data.Functor.Identity (Identity)
 import Data.Proxy            (Proxy(..))
 import Data.Text             (Text)
 
-type TaxCode = TaxExpr Proxy
+type TaxCode a = TaxExpr (Proxy a)
 
-type TaxSituation = TaxExpr Identity
+type TaxSituation a = TaxExpr (Identity a)
 
-data TaxExpr f a where
-    Lit      :: Metadata -> Question -> f a -> TaxExpr f a
-    Add      :: Metadata -> TaxExpr f a -> TaxExpr f a -> TaxExpr f a
-    Subtract :: Metadata -> TaxExpr f a -> TaxExpr f a -> TaxExpr f a
-    -- Fun      :: Metadata -> (a -> b) -> f a -> TaxExpr f b
-    deriving (Show)
+data TaxExpr a where
+    Lit      :: Metadata -> Question -> a -> TaxExpr a
+    Add      :: Metadata -> TaxExpr a -> TaxExpr a -> TaxExpr a
+    Subtract :: Metadata -> TaxExpr a -> TaxExpr a -> TaxExpr a
+    -- Fun      :: Metadata -> (a -> b) -> TaxExpr a -> TaxExpr b
 
 newtype Question = Q { getQuestion :: Text }
     deriving (Show)
@@ -38,7 +37,7 @@ data Metadata = Metadata
 q :: Metadata -> Question -> TaxCode a
 q metadata question = Lit metadata question Proxy
 
-eval :: ( Applicative f, Num a ) => TaxExpr f a -> f a
+eval :: ( Applicative f, Num a ) => TaxExpr (f a) -> f a
 eval (Lit      _ _ fa) = fa
 eval (Add      _ a b)  = (+) <$> eval a <*> eval b
 eval (Subtract _ a b)  = (-) <$> eval a <*> eval b
