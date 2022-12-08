@@ -1,11 +1,9 @@
 {-# LANGUAGE LambdaCase #-}
 
-module Interview.CLI where
+module Main where
 
-import           Data.Foldable         (traverse_)
-import           Data.Functor.Identity (Identity(..))
-import           Data.Proxy            (Proxy(..))
 import qualified Data.Text.IO as Text
+import Data.Text.Read (decimal, signed)
 import qualified TaxCode.Example
 import           TortoiseTax
 
@@ -14,7 +12,7 @@ main = do
     putStrLn "Hello, TortoiseTax!"
     taxSituation <- interview TaxCode.Example.income
     putStrLn "Your income:"
-    putStrLn $ show $ eval taxSituation
+    putStrLn . show . runIdentity $ eval taxSituation
 
 interview :: TaxCode Int -> IO (TaxSituation Int)
 interview = \case
@@ -25,5 +23,5 @@ interview = \case
       traverse_ Text.putStrLn name
       traverse_ Text.putStrLn simpleExplanation
       Text.putStrLn question
-      input <- read <$> getLine
+      Right (input, _) <- signed decimal <$> getLine
       pure $ Lit (Metadata name simpleExplanation) (Q question) (Identity input)
