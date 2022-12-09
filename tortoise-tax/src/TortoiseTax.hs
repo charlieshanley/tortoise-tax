@@ -1,28 +1,20 @@
-{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE GADTs #-}
 
-module TortoiseTax
-    where
-    -- ( TaxCode
-    -- , TaxSituation
-    -- , TaxExpr(..)
-    -- , eval
-    -- ) where
+module TortoiseTax where
 
 import Data.Functor.Identity (Identity)
 import Data.Proxy            (Proxy(..))
 import Data.Text             (Text)
 
-type TaxCode a = TaxExpr (Proxy a)
+type TaxCode a = Expr (Proxy a)
 
-type TaxSituation a = TaxExpr (Identity a)
+type TaxSituation a = Expr (Identity a)
 
-data TaxExpr a where
-    Lit      :: Metadata -> Question -> a -> TaxExpr a
-    Add      :: Metadata -> TaxExpr a -> TaxExpr a -> TaxExpr a
-    Subtract :: Metadata -> TaxExpr a -> TaxExpr a -> TaxExpr a
-    -- Fun      :: Metadata -> (a -> b) -> TaxExpr a -> TaxExpr b
-    deriving (Functor)
+data Expr a where
+    Lit      :: Metadata -> Question -> a -> Expr a
+    Add      :: Metadata -> Expr a -> Expr a -> Expr a
+    Subtract :: Metadata -> Expr a -> Expr a -> Expr a
+    -- Fun      :: Metadata -> (a -> b) -> Expr a -> Expr b
 
 newtype Question = Q { getQuestion :: Text }
     deriving (Show)
@@ -39,7 +31,7 @@ data Metadata = Metadata
 q :: Metadata -> Question -> TaxCode a
 q metadata question = Lit metadata question Proxy
 
-eval :: ( Applicative f, Num a ) => TaxExpr (f a) -> f a
+eval :: ( Applicative f, Num a ) => Expr (f a) -> f a
 eval (Lit      _ _ fa) = fa
 eval (Add      _ x y)  = (+) <$> eval x <*> eval y
 eval (Subtract _ x y)  = (-) <$> eval x <*> eval y
