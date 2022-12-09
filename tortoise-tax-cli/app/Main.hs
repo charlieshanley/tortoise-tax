@@ -16,14 +16,14 @@ main = do
     putStrLn "Your income:"
     putStrLn . show . runIdentity $ eval taxSituation
 
-interview :: TaxCode Int -> IO (TaxSituation Int)
+interview :: TaxCode a -> IO (TaxSituation a)
 interview = \case
-  Lit (Info name simpleExplanation) (Q question) Proxy -> do
+  Lit (Info name simpleExplanation) (Q question fromAnswer) -> do
       putStrLn ""
       Text.putStrLn name
       traverse_ Text.putStrLn simpleExplanation
       Text.putStrLn question
-      Just input <- readMaybe . toString <$> getLine -- TODO Text not String
-      pure $ Lit (Info name simpleExplanation) (Q question) (Identity input)
+      Right input <- fromAnswer <$> getLine
+      pure $ Lit (Info name simpleExplanation) (Identity input)
   F mInfo f a -> F mInfo f <$> interview a
   Ap mInfo f a -> Ap mInfo <$> interview f <*> interview a

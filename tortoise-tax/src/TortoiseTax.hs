@@ -1,28 +1,25 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs #-}
 
-module TortoiseTax
-    where
-    -- ( TaxCode
-    -- , TaxSituation
-    -- , Expr(..)
-    -- , eval
-    -- ) where
+module TortoiseTax where
 
 import Data.Functor.Identity (Identity)
-import Data.Proxy            (Proxy(..))
 import Data.Text             (Text)
+import Data.Text.Read        (signed, decimal)
 
-type TaxCode = Expr Proxy
+type TaxCode = Expr Question
 
 type TaxSituation = Expr Identity
 
 data Expr f a where
-    Lit :: (Read a) => Info -> Question -> f a -> Expr f a
+    Lit :: Info -> f a -> Expr f a
     F   :: Maybe Info -> (a -> b) -> Expr f a -> Expr f b
     Ap  :: Maybe Info -> Expr f (a -> b) -> Expr f a -> Expr f b
 
-newtype Question = Q { getQuestion :: Text }
-    deriving (Show)
+data Question a = Q
+    { question :: Text
+    , fromAnswer :: Text -> Either String a
+    }
 
 data Info = Info
     { mdName :: Text
@@ -31,10 +28,9 @@ data Info = Info
     -- TODO , mdInstruction :: Maybe InstructionRef
     -- TODO , mdFormField :: Maybe FormFieldRef
     }
-    deriving (Show)
 
-q :: (Read a) => Info -> Question -> TaxCode a
-q info question = Lit info question Proxy
+int :: (Num a, Integral a) => Info -> Text -> TaxCode a
+int info questionText = Lit info $ Q questionText $ fmap fst . signed decimal
 
 f2 :: (a -> b -> c) -> Maybe Info -> Expr f a -> Expr f b -> Expr f c
 f2 f mInfo a b = Ap mInfo (F Nothing f a) b
@@ -47,6 +43,6 @@ subtr = f2 (-)
 
 
 eval :: ( Applicative f ) => Expr f a -> f a
-eval (Lit _ _ fa) = fa
+eval (Lit _ fa) = fa
 eval (F _ f a)    = f <$> eval a
 eval (Ap _ f a)   = eval f <*> eval a
