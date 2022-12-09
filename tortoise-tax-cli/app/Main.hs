@@ -2,6 +2,8 @@
 
 module Main where
 
+import Prelude hiding (Ap)
+
 import qualified Data.Text.IO as Text
 import Data.Text.Read (decimal, signed)
 import qualified TaxCode.Example
@@ -16,12 +18,12 @@ main = do
 
 interview :: TaxCode Int -> IO (TaxSituation Int)
 interview = \case
-  Add metadata a b -> Add metadata <$> interview a <*> interview b
-  Subtract metadata a b -> Subtract metadata <$> interview a <*> interview b
-  Lit (Metadata name simpleExplanation) (Q question) Proxy -> do
+  Lit (Info name simpleExplanation) (Q question) Proxy -> do
       putStrLn ""
-      traverse_ Text.putStrLn name
+      Text.putStrLn name
       traverse_ Text.putStrLn simpleExplanation
       Text.putStrLn question
-      Right (input, _) <- signed decimal <$> getLine
-      pure $ Lit (Metadata name simpleExplanation) (Q question) (Identity input)
+      Just input <- readMaybe . toString <$> getLine -- TODO Text not String
+      pure $ Lit (Info name simpleExplanation) (Q question) (Identity input)
+  F mInfo f a -> F mInfo f <$> interview a
+  Ap mInfo f a -> Ap mInfo <$> interview f <*> interview a

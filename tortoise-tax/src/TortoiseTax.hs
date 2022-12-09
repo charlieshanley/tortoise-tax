@@ -1,11 +1,10 @@
-{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE GADTs #-}
 
 module TortoiseTax
     where
     -- ( TaxCode
     -- , TaxSituation
-    -- , TaxExpr(..)
+    -- , Expr(..)
     -- , eval
     -- ) where
 
@@ -13,22 +12,20 @@ import Data.Functor.Identity (Identity)
 import Data.Proxy            (Proxy(..))
 import Data.Text             (Text)
 
-type TaxCode a = TaxExpr (Proxy a)
+type TaxCode = Expr Proxy
 
-type TaxSituation a = TaxExpr (Identity a)
+type TaxSituation = Expr Identity
 
-data TaxExpr a where
-    Lit      :: Metadata -> Question -> a -> TaxExpr a
-    Add      :: Metadata -> TaxExpr a -> TaxExpr a -> TaxExpr a
-    Subtract :: Metadata -> TaxExpr a -> TaxExpr a -> TaxExpr a
-    -- Fun      :: Metadata -> (a -> b) -> TaxExpr a -> TaxExpr b
-    deriving (Functor)
+data Expr f a where
+    Lit :: (Read a) => Info -> Question -> f a -> Expr f a
+    F   :: Maybe Info -> (a -> b) -> Expr f a -> Expr f b
+    Ap  :: Maybe Info -> Expr f (a -> b) -> Expr f a -> Expr f b
 
 newtype Question = Q { getQuestion :: Text }
     deriving (Show)
 
-data Metadata = Metadata
-    { mdName :: Maybe Text
+data Info = Info
+    { mdName :: Text
     , mdSimpleExplanation :: Maybe Text
     -- TODO , mdDetailedExplanation :: Maybe Text
     -- TODO , mdInstruction :: Maybe InstructionRef
@@ -36,11 +33,20 @@ data Metadata = Metadata
     }
     deriving (Show)
 
-q :: Metadata -> Question -> TaxCode a
-q metadata question = Lit metadata question Proxy
+q :: (Read a) => Info -> Question -> TaxCode a
+q info question = Lit info question Proxy
 
-eval :: ( Applicative f, Num a ) => TaxExpr (f a) -> f a
-eval (Lit      _ _ fa) = fa
-eval (Add      _ x y)  = (+) <$> eval x <*> eval y
-eval (Subtract _ x y)  = (-) <$> eval x <*> eval y
--- eval (Fun      _ f fb) = f   <$> fb
+f2 :: (a -> b -> c) -> Maybe Info -> Expr f a -> Expr f b -> Expr f c
+f2 f mInfo a b = Ap mInfo (F Nothing f a) b
+
+add :: ( Num a ) => Maybe Info -> Expr f a -> Expr f a -> Expr f a
+add = f2 (+)
+
+subtr :: ( Num a ) => Maybe Info -> Expr f a -> Expr f a -> Expr f a
+subtr = f2 (-)
+
+
+eval :: ( Applicative f ) => Expr f a -> f a
+eval (Lit _ _ fa) = fa
+eval (F _ f a)    = f <$> eval a
+eval (Ap _ f a)   = eval f <*> eval a
