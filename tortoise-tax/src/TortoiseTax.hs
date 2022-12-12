@@ -46,4 +46,4 @@ subtr = f2 (-)
 
 
 eval :: (Applicative f) => Ap (TaxField f) x -> f x
-eval = runAp (snd . getCompose)
+eval = runAp $ snd . getCompose

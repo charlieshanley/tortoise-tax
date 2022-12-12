@@ -13,7 +13,7 @@
       {
         devShell = mkShell {
           nativeBuildInputs = [
-            cabal-install cabal2nix haskellPackages.ghc ghcid
+            cabal-install cabal2nix haskellPackages.ghc ghcid haskellPackages.hlint
           ];
         };
       });
