@@ -1,51 +1,52 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators #-}
 
 module TortoiseTax where
 
-import Data.Functor.Identity (Identity)
+import Data.Functor.Identity
 import Data.Text             (Text)
 import Data.Text.Read        (signed, decimal)
 import Data.List.NonEmpty    (NonEmpty)
+import Control.Applicative.Free
+import Data.Functor.Compose
+import Data.Functor.Sum
 
-type TaxCode = Expr Question
+type TaxField f = (,) (Maybe Info) `Compose` f
 
-type TaxSituation = Expr Identity
+type Interview = Ap (TaxField (Sum Question Identity))
 
-type TaxSituations = Expr NonEmpty
+type TaxSituation = Ap (TaxField Identity)
 
-data Expr f a where
-    Pure :: Info -> f a -> Expr f a
-    Fmap :: Maybe Info -> (a -> b) -> Expr f a -> Expr f b
-    Ap   :: Maybe Info -> Expr f (a -> b) -> Expr f a -> Expr f b
+type TaxSituations = Ap (TaxField NonEmpty)
 
 data Question a = Q
-    { question :: Text
-    , fromAnswer :: Text -> Either String a
+    { qText :: Text
+    , qFromAnswer :: Text -> Either String a
     }
 
 data Info = Info
-    { mdName :: Text
-    , mdSimpleExplanation :: Maybe Text
+    { name :: Text
+    , simpleExplanation :: Maybe Text
     -- TODO , mdDetailedExplanation :: Maybe Text
     -- TODO , mdInstruction :: Maybe InstructionRef
     -- TODO , mdFormField :: Maybe FormFieldRef
     }
 
-int :: (Num a, Integral a) => Info -> Text -> TaxCode a
-int info questionText = Pure info $ Q questionText $ fmap fst . signed decimal
+int :: (Num a, Integral a) => Info -> Text -> Interview a
+int info questionText = liftAp $
+    Compose (Just info, InL $ Q questionText $ fmap fst . signed decimal)
 
-f2 :: (a -> b -> c) -> Maybe Info -> Expr f a -> Expr f b -> Expr f c
-f2 f mInfo a b = Ap mInfo (Fmap Nothing f a) b
+f2 :: (a -> b -> c) -> Maybe Info -> Interview a -> Interview b -> Interview c
+f2 f mInfo a b = liftAp (Compose (mInfo, InR $ Identity f)) <*> a <*> b
 
-add :: ( Num a ) => Maybe Info -> Expr f a -> Expr f a -> Expr f a
+add :: ( Num a ) => Maybe Info -> Interview a -> Interview a -> Interview a
 add = f2 (+)
 
-subtr :: ( Num a ) => Maybe Info -> Expr f a -> Expr f a -> Expr f a
+subtr :: ( Num a ) => Maybe Info -> Interview a -> Interview a -> Interview a
 subtr = f2 (-)
 
 
-eval :: ( Applicative f ) => Expr f a -> f a
-eval (Pure _ fa) = fa
-eval (Fmap _ f a)    = f <$> eval a
-eval (Ap _ f a)   = eval f <*> eval a
+eval :: (Applicative f) => Ap (TaxField f) x -> f x
+eval = runAp (snd . getCompose)

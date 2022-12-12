@@ -2,35 +2,35 @@
 
 module Main where
 
-import Prelude hiding (Ap)
+import Prelude hiding (Ap, Sum)
 
-import           Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.Text.IO as Text
-import           Data.Text.Read (decimal, signed)
 import qualified TaxCode.Example
 import           TortoiseTax
+import Data.Functor.Sum
+import Control.Applicative.Free
 
 main :: IO ()
 main = do
     putStrLn "Hello, TortoiseTax!"
-    taxSituation <- interview TaxCode.Example.income
+    taxSituation <- getCompose $ runAp interview TaxCode.Example.income
     putStrLn "Your income:"
     putStrLn . show $ eval taxSituation
 
-interview :: TaxCode a -> IO (TaxSituations a)
-interview = \case
-  Pure (Info name simpleExplanation) (Q question fromAnswer) -> do
-      putStrLn "-----"
-      Text.putStrLn name
-      traverse_ Text.putStrLn simpleExplanation
-      Text.putStrLn question
-      Right head <- fromAnswer <$> getLine
-      let next = do
-            input <- getLine
-            case fromAnswer input of
-              Left err -> pure []
-              Right x -> (:) x <$> next
-      tail <- next
-      pure $ Pure (Info name simpleExplanation) (head :| tail)
-  Fmap mInfo f a -> Fmap mInfo f <$> interview a
-  Ap mInfo f a -> Ap mInfo <$> interview f <*> interview a
+interview :: TaxField (Sum Question Identity) x -> Compose IO TaxSituations x
+interview (Compose (mInfo, value)) =
+    case value of
+      InR (Identity x) -> pure x
+      InL (Q questionText fromAnswer) -> Compose $ do
+          putStrLn "-----"
+          traverse_ (Text.putStrLn . name) mInfo
+          traverse_ Text.putStrLn $ simpleExplanation =<< mInfo
+          Text.putStrLn questionText
+          Right firstInput <- fromAnswer <$> getLine
+          let next = do
+                input <- getLine
+                case fromAnswer input of
+                  Left _ -> pure []
+                  Right x -> (:) x <$> next
+          moreInputs <- next
+          pure $ liftAp $ Compose (mInfo, firstInput :| moreInputs)

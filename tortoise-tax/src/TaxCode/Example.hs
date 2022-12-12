@@ -4,7 +4,7 @@ module TaxCode.Example where
 
 import TortoiseTax
 
-income, wages, taxableInterest, interest, nontaxableInterest :: TaxCode Int
+income, wages, taxableInterest, interest, nontaxableInterest :: Interview Int
 
 income = add (Just $ Info "Total income" Nothing) wages taxableInterest
 
