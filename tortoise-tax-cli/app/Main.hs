@@ -11,15 +11,18 @@ import Control.Applicative.Free
 main :: IO ()
 main = do
     putStrLn "Hello, TortoiseTax!"
-    taxSituation <- getCompose $ runAp interview TaxCode.Example.income
+    taxSituation <- interview TaxCode.Example.income
     putStrLn "Your income:"
-    putStrLn . show $ eval taxSituation
+    print $ eval taxSituation
 
-interview :: TaxField (Sum Question Identity) x -> Compose IO TaxSituations x
-interview (Compose (mInfo, value)) =
+interview :: Interview a -> IO (TaxSituations a)
+interview = getCompose . runAp askQuestion
+
+askQuestion :: TaxField (Sum Question Identity) x -> Compose IO TaxSituations x
+askQuestion (Compose (mInfo, value)) = Compose $
     case value of
-      InR (Identity x) -> pure x
-      InL (Q questionText fromAnswer) -> Compose $ do
+      InR (Identity x) -> pure $ liftAp $ Compose (mInfo, pure x)
+      InL (Q questionText fromAnswer) -> do
           putStrLn "-----"
           traverse_ (Text.putStrLn . name) mInfo
           traverse_ Text.putStrLn $ simpleExplanation =<< mInfo
