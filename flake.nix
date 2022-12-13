@@ -8,12 +8,13 @@
     flake-utils.lib.eachDefaultSystem (system:
     let
       pkgs = import nixpkgs { inherit system; };
-      inherit (pkgs) cabal-install cabal2nix ghcid haskellPackages mkShell;
+      inherit (pkgs) haskellPackages;
     in
       {
-        devShell = mkShell {
+        devShell = pkgs.mkShell {
           nativeBuildInputs = [
-            cabal-install cabal2nix haskellPackages.ghc ghcid haskellPackages.hlint
+            pkgs.cabal-install pkgs.cabal2nix haskellPackages.ghc pkgs.ghcid
+            haskellPackages.hlint pkgs.stylish-haskell
           ];
         };
       });

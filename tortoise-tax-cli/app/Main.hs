@@ -1,12 +1,12 @@
 module Main where
 
-import Prelude hiding (Ap, Sum)
+import           Prelude                  hiding (Ap, Sum)
 
-import qualified Data.Text.IO as Text
+import           Control.Applicative.Free
+import           Data.Functor.Sum
+import qualified Data.Text.IO             as Text
 import qualified TaxCode.Example
 import           TortoiseTax
-import Data.Functor.Sum
-import Control.Applicative.Free
 
 main :: IO ()
 main = do
@@ -31,7 +31,7 @@ askQuestion (Compose (mInfo, value)) = Compose $
           let next = do
                 input <- getLine
                 case fromAnswer input of
-                  Left _ -> pure []
+                  Left _  -> pure []
                   Right x -> (:) x <$> next
           moreInputs <- next
           pure $ liftAp $ Compose (mInfo, firstInput :| moreInputs)

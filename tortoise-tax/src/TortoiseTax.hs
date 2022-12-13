@@ -2,13 +2,13 @@
 
 module TortoiseTax where
 
-import Data.Functor.Identity
-import Data.Text             (Text)
-import Data.Text.Read        (signed, decimal)
-import Data.List.NonEmpty    (NonEmpty)
-import Control.Applicative.Free
-import Data.Functor.Compose
-import Data.Functor.Sum
+import           Control.Applicative.Free
+import           Data.Functor.Compose
+import           Data.Functor.Identity
+import           Data.Functor.Sum
+import           Data.List.NonEmpty       (NonEmpty)
+import           Data.Text                (Text)
+import           Data.Text.Read           (decimal, signed)
 
 type TaxField f = (,) (Maybe Info) `Compose` f
 
@@ -19,12 +19,12 @@ type TaxSituation = Ap (TaxField Identity)
 type TaxSituations = Ap (TaxField NonEmpty)
 
 data Question a = Q
-    { qText :: Text
+    { qText       :: Text
     , qFromAnswer :: Text -> Either String a
     }
 
 data Info = Info
-    { name :: Text
+    { name              :: Text
     , simpleExplanation :: Maybe Text
     -- TODO , mdDetailedExplanation :: Maybe Text
     -- TODO , mdInstruction :: Maybe InstructionRef
