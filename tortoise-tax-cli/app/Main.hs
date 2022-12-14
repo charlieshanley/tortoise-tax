@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeOperators #-}
+
 module Main where
 
 import           Prelude                  hiding (Ap, Sum)
@@ -11,14 +13,14 @@ import           TortoiseTax
 main :: IO ()
 main = do
     putStrLn "Hello, TortoiseTax!"
-    taxSituation <- interview TaxCode.Example.income
-    putStrLn "Your income:"
+    taxSituation <- interview TaxCode.Example.totalTax
+    putStrLn "Your total tax:"
     print $ eval taxSituation
 
 interview :: Interview a -> IO (TaxSituations a)
 interview = getCompose . runAp askQuestion
 
-askQuestion :: TaxField (Sum Question Identity) x -> Compose IO TaxSituations x
+askQuestion :: (TaxField . Sum Question Identity) x -> (IO . TaxSituations) x
 askQuestion (Compose (mInfo, value)) = Compose $
     case value of
       InR (Identity x) -> pure $ liftAp $ Compose (mInfo, pure x)
