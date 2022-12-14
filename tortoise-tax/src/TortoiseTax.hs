@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeFamilies  #-}
 {-# LANGUAGE TypeOperators #-}
 
 module TortoiseTax where
@@ -10,13 +11,15 @@ import           Data.List.NonEmpty       (NonEmpty)
 import           Data.Text                (Text)
 import           Data.Text.Read           (decimal, signed)
 
-type TaxField f = (,) (Maybe Info) `Compose` f
+type (.) = Compose
 
-type Interview = Ap (TaxField (Sum Question Identity))
+type TaxField = (,) (Maybe Info)
 
-type TaxSituation = Ap (TaxField Identity)
+type Interview = Ap (TaxField . Sum Question Identity)
 
-type TaxSituations = Ap (TaxField NonEmpty)
+type TaxSituation = Ap (TaxField . Identity)
+
+type TaxSituations = Ap (TaxField . NonEmpty)
 
 data Question a = Q
     { qText       :: Text
@@ -44,6 +47,8 @@ add = f2 (+)
 subtr :: ( Num a ) => Maybe Info -> Interview a -> Interview a -> Interview a
 subtr = f2 (-)
 
+mult :: ( Num a ) => Maybe Info -> Interview a -> Interview a -> Interview a
+mult = f2 (*)
 
-eval :: (Applicative f) => Ap (TaxField f) x -> f x
+eval :: (Applicative f) => Ap (TaxField . f) x -> f x
 eval = runAp $ snd . getCompose
