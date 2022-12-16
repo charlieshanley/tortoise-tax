@@ -36,8 +36,8 @@ library
     exposed-modules:  TortoiseTax, TaxCode.Example
     -- other-modules:
     build-depends:      base ^>=4.14.1.0
-                      , free ^>=5.1.10
                       , text
+                      , free ^>=5.1.10
 
 test-suite tortoise-tax-test
     hs-source-dirs:   test

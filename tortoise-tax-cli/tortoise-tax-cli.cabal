@@ -33,6 +33,7 @@ executable tortoise-tax-cli
                     , free ^>=5.1.10
                     , relude ^>= 1.1.0.0
                     , tortoise-tax
+                    , ad ^>=4.5.2
 
     mixins:           base hiding (Prelude)
                     , relude (Relude as Prelude)
