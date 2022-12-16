@@ -1,5 +1,6 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeOperators         #-}
 
 module TortoiseTax where
 
@@ -10,7 +11,7 @@ import           Data.Functor.Identity
 import           Data.Functor.Sum
 import           Data.List.NonEmpty       (NonEmpty)
 import           Data.Text                (Text)
-import           Data.Text.Read           (decimal, signed)
+import           Data.Text.Read           (double, signed)
 
 type (.) = Compose
 
@@ -35,9 +36,9 @@ data Info = Info
     -- TODO , mdFormField :: Maybe FormFieldRef
     }
 
-int :: (Num a, Integral a) => Info -> Text -> Interview a
-int info questionText = liftAp $
-    Compose (Just info, InL $ Q questionText $ fmap fst . signed decimal)
+dbl :: Info -> Text -> Interview Double
+dbl info questionText = liftAp $
+    Compose (Just info, InL $ Q questionText $ fmap fst . signed double)
 
 f2 :: (a -> b -> c) -> Info -> Interview a -> Interview b -> Interview c
 f2 f info a b = liftAp (Compose (Just info, InR $ Identity f)) <*> a <*> b
@@ -62,3 +63,8 @@ instance Num a => Num (Interview a) where
     abs = fmap abs
     signum = fmap signum
     fromInteger = pure . fromInteger
+
+instance Fractional a => Fractional (Interview a) where
+    (/) = liftA2 (/)
+    recip = fmap recip
+    fromRational = pure . fromRational
