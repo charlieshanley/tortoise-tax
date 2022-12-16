@@ -14,6 +14,8 @@ main :: IO ()
 main = do
     putStrLn "Hello, TortoiseTax!"
     taxSituation <- interview TaxCode.Example.totalTax
+    putStrLn "Your stuff:"
+    traverse_ Text.putStrLn $ printAp taxSituation
     putStrLn "Your total tax:"
     print $ eval taxSituation
 

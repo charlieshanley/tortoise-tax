@@ -1,6 +1,9 @@
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module TortoiseTax where
 
@@ -54,6 +57,11 @@ mult = f2 (*)
 
 eval :: (Applicative f) => Ap (TaxField . f) x -> f x
 eval = runAp $ snd . getCompose
+
+printAp :: Ap (TaxField . f) a -> [ Text ]
+printAp = runAp_ $ \case
+    Compose (Just (Info nm _), _) -> [ nm ]
+    Compose (Nothing, _)          -> [ "--" ]
 
 instance Num a => Num (Interview a) where
     (+) = liftA2 (+)
